@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors'
 import React, { memo } from 'react'
-import { Animated, Text, useColorScheme, View } from 'react-native'
+import { Animated, Text, View } from 'react-native'
 import { useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../global_state'
@@ -8,6 +8,7 @@ import { updatePosition } from '../global_state/puzzleSlice'
 import DoubleTapView from './DoubleTapView'
 
 interface Props {
+    theme: 'dark' | 'light'
     size: number,
     value: number,
     index: { row: number, col: number },
@@ -17,118 +18,48 @@ interface Props {
 }
 
 const Item = (props: Props) => {
-    const theme = useColorScheme()
     const { row, col } = props.index
+    const { theme } = props
 
     const fontSize = Math.floor(props.size / 2)
     const fontWeight = props.isBasedNumber ? '900' : '400'
     const hintSize = Math.floor(props.size / 3)
     const { row: rowCheck, col: colCheck } = useSelector((state: RootState) => state.puzzle.position)
     const {
+        rootPuzzle,
         hints: hintList,
         based: puzzleList,
         solved: solvedList,
-        valueSelected,
-        showError } = useSelector((state: RootState) => state.puzzle)
+        valueSelected } = useSelector((state: RootState) => state.puzzle)
 
     const dispatch = useDispatch()
 
     // handle backgroud color
-    const backgroundColor = () => {
+    const getBackgroundColor = () => {
         // check is item selected
-        if (rowCheck == row && colCheck == col) return Colors[theme!!].itemSelected
+        if (rowCheck == row && colCheck == col) return Colors[theme].itemSelected
         // check in row or col selected
-        else if (rowCheck == row || colCheck == col) return Colors[theme!!].areaSelected
+        else if (rowCheck == row || colCheck == col) return Colors[theme].areaSelected
         // check in box
         else if (Math.floor(rowCheck / 3) == Math.floor(row / 3) && Math.floor(colCheck / 3) == Math.floor(col / 3))
-            return Colors[theme!!].areaSelected
+            return Colors[theme].areaSelected
         return 'transparent'
     }
 
-    const isInRow = (value: number | undefined) => {
-        if (!value || value == 0) return false
-        let count = 0
-        for (let i = 0; i < 9; i++) {
-            if (puzzleList[row][i] != 0 && puzzleList[row][i] == value) {
-                count++
-                if (count > 1)
-                    return true
-            }
-            else if (solvedList[row][i] != 0 && solvedList[row][i] == value) {
-                count++
-                if (count > 1)
-                    return true
-            }
-        }
-        return false
+    const getNumberColor = () => {
+        // error color
+        if (solvedList[row][col] != 0 && solvedList[row][col] != rootPuzzle[row][col])
+            return Colors[theme].error
+        // selects color
+        if (puzzleList[row][col] == valueSelected
+            || solvedList[row][col] == valueSelected)
+            return Colors[theme].blue
+        // others
+        return props.isBasedNumber
+            ? Colors[theme].textLight
+            : Colors[theme].text
     }
 
-    const isInCol = (value: number | undefined) => {
-        if (!value || value == 0) return false
-        let count = 0
-        for (let i = 0; i < 9; i++) {
-            if (puzzleList[i][col] != 0 && puzzleList[i][col] == value) {
-                count++
-                if (count > 1) return true
-            }
-            else if
-                (solvedList[i][col] != 0 && solvedList[i][col] == value) {
-                count++
-                if (count > 1)
-                    return true
-            }
-        }
-        return false
-    }
-
-    const isInBox = (value: number | undefined) => {
-        if (!value || value == 0) return false
-        const rowStart = Math.floor(row / 3) * 3
-        const colStart = Math.floor(col / 3) * 3
-        let count = 0
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                if (
-                    puzzleList[rowStart + i][colStart + j]
-                    == value
-                    || solvedList[rowStart + i][colStart + j] == value) {
-                    count++
-                    if (count > 1) {
-                        return true
-                    }
-                }
-            }
-        }
-        return false
-    }
-
-    const showErrorColorSelected = () => {
-        if (showError === true
-            && (isInBox(valueSelected)
-                || isInCol(valueSelected)
-                || isInRow(valueSelected))) {
-            return Colors[theme!!].error
-        }
-        return Colors[theme!!].blue
-    }
-
-    const showErrorColorDefault = (value: number) => {
-        if (showError === true
-            && (isInBox(value) || isInCol(value) || isInRow(value))) {
-            return Colors[theme!!].error
-        }
-        return props.isBasedNumber ? Colors[theme!!].textLight : Colors[theme!!].text
-    }
-
-    const selectedNumberColorWithError = () => {
-        if (valueSelected == props.value) {
-            if (showError === true) {
-                return showErrorColorSelected()
-            }
-            return Colors[theme!!].blue
-        }
-        return showErrorColorDefault(props.value)
-    }
     const numberAnimation = useAnimatedStyle(() => ({
         transform: [{ scale: withSequence(withTiming(1.2, { duration: 100 }), withTiming(0.8, { duration: 100 }), withTiming(1, { duration: 100 })) }]
     }), [valueSelected])
@@ -168,7 +99,7 @@ const Item = (props: Props) => {
             style={{
                 height: props.size,
                 width: props.size,
-                backgroundColor: backgroundColor()
+                backgroundColor: getBackgroundColor()
             }}
             accessDoubleTap={!props.isBasedNumber}
             handleTapAction={({ x, y }) => {
@@ -189,7 +120,7 @@ const Item = (props: Props) => {
                             fontSize: fontSize,
                             lineHeight: props.size,
                             fontWeight: fontWeight,
-                            color: selectedNumberColorWithError()
+                            color: getNumberColor()
                         }
                     ]}>{props.value}</Text>
                 : renderHint(row, col)}

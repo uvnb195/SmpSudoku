@@ -1,5 +1,5 @@
 import { Colors } from '@/constants/Colors'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ColorSchemeName, useColorScheme, View } from 'react-native'
 import { useSharedValue } from 'react-native-reanimated'
 import { useDispatch, useSelector } from 'react-redux'
@@ -21,6 +21,7 @@ const GridItem = ({ size, numberSize }: Props) => {
 
     const selectorPosition = useSelector((state: RootState) => state.puzzle.position)
     const { solved: listSolved, mode, based } = useSelector((state: RootState) => state.puzzle)
+
 
     const updateNote = async (v: boolean) => {
         const response = await updateNoteStatus(based, v, mode)
@@ -62,6 +63,7 @@ const GridItem = ({ size, numberSize }: Props) => {
                         }}
                         className={'items-center justify-center'}>
                         <Item
+                            theme={theme!!}
                             isBasedNumber={listPuzzle[i][j] != 0}
                             size={size}
                             value={number}

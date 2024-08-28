@@ -55,10 +55,6 @@ const CustomTranformButton = (
         setTimeout(() => setDisableButton(false), 600)
     }, [pause])
 
-    useEffect(() => {
-        console.log('loading status:', loading)
-    }, [loading])
-
 
     return (
         <>

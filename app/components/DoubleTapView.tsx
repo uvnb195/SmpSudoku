@@ -30,7 +30,6 @@ const DoubleTapView = ({
 
     const handleDoubleTap = () => {
         if (!accessDoubleTap) return
-
         handleDoubleTapAction()
     }
 
@@ -53,9 +52,6 @@ const DoubleTapView = ({
             withTiming(1, { duration: 50 })
         )
     }
-
-
-
 
     useEffect(() => {
         if (valueSelected == value)

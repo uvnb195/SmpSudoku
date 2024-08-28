@@ -4,6 +4,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 
 interface PuzzleState {
+    rootPuzzle: number[][],
     based: number[][]
     solved: number[][],
     hints: boolean[][][],
@@ -16,8 +17,8 @@ interface PuzzleState {
         col: number,
     },
     valueSelected?: number,
-    showError?: boolean,
-    mode: SudokuMode
+    mode: SudokuMode,
+    hintRemaining: number
 }
 
 const resetIndex = {
@@ -28,7 +29,25 @@ const resetIndex = {
 const resetArray = Array(9).fill(0).map(_ => Array(9).fill(0))
 const resetHints = Array(9).fill(0).map(_ => Array(9).fill(0).map(_ => Array(9).fill(false)))
 
+const randomIndex = (N: number) => Math.random() * N + 1
+
+const isPuzzleFinished = (solved: number[][]) => {
+    for (let i = 0; i < solved.length; i++) {
+        for (let j = 0; j < solved.length; j++) {
+            if (solved[i][j] == 0)
+                return {
+                    finished: false,
+                    row: i,
+                    col: j
+                }
+        }
+    }
+
+    return { finished: true }
+}
+
 const initialState: PuzzleState = {
+    rootPuzzle: resetArray,
     based: resetArray,
     solved: resetArray,
     hints: resetHints,
@@ -39,8 +58,8 @@ const initialState: PuzzleState = {
         row: -1,
         col: -1
     },
-    showError: false,
-    mode: SudokuMode.easy
+    mode: SudokuMode.easy,
+    hintRemaining: 0,
 }
 
 interface NumberType {
@@ -54,11 +73,16 @@ const puzzleSlice = createSlice({
     reducers: {
         createBased:
             (state, action: PayloadAction<{
+                root: number[][],
                 puzzle: number[][],
                 note: boolean,
-                mode: SudokuMode
+                mode: SudokuMode,
+                hintRemaining: number
             }>) => {
+                state.hintRemaining = action.payload.hintRemaining
+                state.rootPuzzle = action.payload.root
                 state.based = action.payload.puzzle
+                state.solved = action.payload.puzzle
                 state.note = action.payload.note
                 state.mode = action.payload.mode
             },
@@ -109,10 +133,6 @@ const puzzleSlice = createSlice({
                     ...resetIndex
                 }
             },
-        setShowError:
-            (state, action: PayloadAction<boolean>) => {
-                state.showError = action.payload
-            },
         deleteNumber: (state) => {
             const { row, col } = state.position
             if (state.note) {
@@ -125,6 +145,7 @@ const puzzleSlice = createSlice({
             (state, action: PayloadAction<SudokuMode>) => {
                 state.mode = action.payload
                 // reset puzzle
+                state.rootPuzzle = resetArray
                 state.based = resetArray
                 state.solved = resetArray
                 state.hints = resetHints
@@ -134,6 +155,21 @@ const puzzleSlice = createSlice({
                     row: -1,
                 }
                 state.valueSelected = undefined
+            },
+        giveAHint:
+            (state) => {
+                const status = isPuzzleFinished(state.solved)
+                if (!status.finished) {
+                    const { row, col } = status
+                    if (state.hintRemaining > 0) {
+                        const showValue = state.rootPuzzle[row!!][col!!]
+                        state.hintRemaining--
+                        state.position.row = row!!
+                        state.position.col = col!!
+                        state.valueSelected = showValue
+                        state.solved[row!!][col!!] = showValue
+                    }
+                }
             }
     }
 })
@@ -145,9 +181,9 @@ export const {
     setEnableNote,
     updatePosition,
     createHints,
-    setShowError,
     deleteNumber,
-    changeMode
+    changeMode,
+    giveAHint
 } = puzzleSlice.actions
 
 export default puzzleSlice.reducer

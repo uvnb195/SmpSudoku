@@ -78,14 +78,14 @@ export const loadBased = async (mode: SudokuMode = SudokuMode.easy) => {
             }
         }
         else {
-
             // if not exist, create new and add to file
             const sudoku = new Sudoku(mode = mode)
-            sudoku.fillValues()
             const newData = {
+                root: sudoku.rootMat,
                 puzzle: sudoku.mat,
                 note: false,
-                mode: mode
+                mode: mode,
+                hintRemaining: 3,
             }
 
             await FileSystem.writeAsStringAsync(BASED_URI,

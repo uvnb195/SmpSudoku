@@ -21,7 +21,8 @@ export const Colors = {
     areaSelected: 'rgba(191,191,191,0.3)',
     itemSelected: 'rgba(96, 130, 182,0.2)',
     error: '#e34f4f',
-    iconSelected: 'rgb(142,209,237)'
+    iconSelected: 'rgb(142,209,237)',
+    button: 'rgb(202,233,243)'
   },
   dark: {
     text: '#ECEDEE',
@@ -33,10 +34,11 @@ export const Colors = {
     tabIconSelected: tintColorDark,
     surface: '#1e293b',
     blurBackground: 'rgba(0,0,0,0.7)',
-    blue: 'rgb(99,102,241)',
+    blue: 'rgba(96, 130, 182,1)',
     areaSelected: 'rgba(129, 133, 137,0.1)',
     itemSelected: 'rgba(96, 130, 182,0.2)',
     error: '#e34f4f',
-    iconSelected: 'rgb(27,81,138)'
+    iconSelected: 'rgb(27,81,138)',
+    button: 'rgba(96, 130, 182,0.2)'
   },
 };

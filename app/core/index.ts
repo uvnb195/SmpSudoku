@@ -4,14 +4,14 @@ export default class Sudoku {
     N: number = 9  //number of row/col
     K: number;  //total of disable number
     SRN: number; //a box
+    rootMat: number[][] = Array(this.N).fill(0).map(_ => Array(this.N).fill(0)) //root puzzle before remove digits
     mat: number[][];//matrix
     mode: SudokuMode; //difficult
 
     constructor(mode = SudokuMode.easy) {
         const SRNd = Math.sqrt(this.N);
-        this.SRN = Math.floor(SRNd);
+        this.SRN = Math.floor(SRNd)
         this.mat = Array(this.N).fill(0).map(_ => Array(this.N).fill(0))
-        console.log(this.mat)
         this.mode = mode
         switch (mode) {
             case SudokuMode.easy:
@@ -26,12 +26,13 @@ export default class Sudoku {
             case SudokuMode.expert:
                 this.K = 35 + Math.floor(Math.random() * 6)
         }
+        this.fillValues()
     }
 
     fillValues() {
-        this.fillDiagonal();
-        this.fillRemaining(0, this.SRN);
-        this.removeKDigits();
+        this.fillDiagonal()
+        this.fillRemaining(0, this.SRN)
+        this.removeKDigits()
     }
 
     fillDiagonal() {
@@ -90,7 +91,8 @@ export default class Sudoku {
     }
 
     fillRemaining(i: number, j: number): boolean {
-        if (i === this.N - 1 && j === this.N) return true;
+        if (i === this.N - 1 && j === this.N)
+            return true
         if (j === this.N) {
             i++;
             j = 0;
@@ -108,11 +110,12 @@ export default class Sudoku {
 
     printSudoku() {
         for (let i = 0; i < this.N; i++) {
-            console.log(this.mat[i].join(" "));
+            console.log(this.mat[i].join("\n"));
         }
     }
 
     removeKDigits() {
+        this.rootMat = JSON.parse(JSON.stringify(this.mat))
         let count = this.K;
         while (count !== 0) {
             let i = Math.floor(Math.random() * this.N);
