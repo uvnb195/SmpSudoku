@@ -48,7 +48,8 @@ const Item = (props: Props) => {
 
     const getNumberColor = () => {
         // error color
-        if (solvedList[row][col] != 0 && solvedList[row][col] != rootPuzzle[row][col])
+        if (solvedList[row][col] != 0
+            && solvedList[row][col] != rootPuzzle[row][col])
             return Colors[theme].error
         // selects color
         if (puzzleList[row][col] == valueSelected
@@ -61,8 +62,13 @@ const Item = (props: Props) => {
     }
 
     const numberAnimation = useAnimatedStyle(() => ({
-        transform: [{ scale: withSequence(withTiming(1.2, { duration: 100 }), withTiming(0.8, { duration: 100 }), withTiming(1, { duration: 100 })) }]
-    }), [valueSelected])
+        transform: [{
+            scale: withSequence(
+                withTiming(1.2, { duration: 100 }),
+                withTiming(0.8, { duration: 100 }),
+                withTiming(1, { duration: 100 }))
+        }]
+    }))
 
     const renderHint = (row: number, col: number) => {
         const hints = []

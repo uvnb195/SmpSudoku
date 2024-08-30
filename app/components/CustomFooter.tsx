@@ -1,23 +1,54 @@
 import { Colors } from '@/constants/Colors'
 import React from 'react'
 import { Pressable, Text, useColorScheme, View } from 'react-native'
-import { ArrowPathRoundedSquareIcon, ArrowUpLeftIcon, ArrowUturnLeftIcon, LightBulbIcon, PauseIcon, PlayIcon, ShieldCheckIcon, ShieldExclamationIcon, TrophyIcon } from 'react-native-heroicons/outline'
+import { ArrowUturnLeftIcon, PauseIcon, PlayIcon, TrophyIcon } from 'react-native-heroicons/outline'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../global_state'
+import { decrementHintRemainingInFile, guessNumber, isPuzzleFinished, undoInFile } from '../global_state/FileSystem'
+import { addNumber, decrementHintRemaining, undo, updatePosition } from '../global_state/puzzleSlice'
 import CustomTranformButton from './CustomTranformButton'
-import CustomTransformSwitch from './CustomTransformSwitchButton'
-import { MagnifyingGlassPlusIcon } from 'react-native-heroicons/solid'
 import HintButton from './HintButton'
-import { giveAHint } from '../global_state/puzzleSlice'
 
 const CustomFooter = () => {
     const theme = useColorScheme()
     const dispatch = useDispatch()
 
-    const { hintRemaining } = useSelector((state: RootState) => state.puzzle)
+    const {
+        hintRemaining,
+        solved,
+        rootPuzzle
+    } = useSelector((state: RootState) => state.puzzle)
 
-    const handleShowAHint = () => {
-        dispatch(giveAHint())
+    const handleShowAHint = async () => {
+        if (hintRemaining == 0) return
+
+        const status = isPuzzleFinished(solved)
+        if (!status.finished) {
+            const { row, col } = status
+            const hintValue = rootPuzzle[row!!][col!!]
+            dispatch(updatePosition({
+                position: {
+                    x: 0,
+                    y: 0,
+                    row: row!!,
+                    col: col!!
+                }
+            }))
+            dispatch(addNumber(hintValue))
+            dispatch(decrementHintRemaining())
+            const guessNumberRes = await guessNumber(
+                hintValue,
+                { row: row!!, col: col!! },
+                false)
+            const updateHintRemainingRes = await
+                decrementHintRemainingInFile()
+        }
+    }
+
+    const handleUndo = async () => {
+        dispatch(undo())
+
+        await undoInFile()
     }
 
     return (
@@ -76,7 +107,8 @@ const CustomFooter = () => {
                     <Pressable className='rounded-full w-[48px] h-[48px] items-center justify-center'
                         style={{
                             backgroundColor: Colors[theme!!].button
-                        }}>
+                        }}
+                        onPress={handleUndo}>
                         <ArrowUturnLeftIcon color={Colors[theme!!].text} size={28} />
                     </Pressable>
                 </View>

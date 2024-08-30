@@ -67,7 +67,10 @@ const CustomModal = ({ visible, onDisableModal, style, size, position, handleNot
     const handleAddNumber = async (num: number) => {
         dispatch(addNumber(num))
         onDisableModal(false)
-        const response = await guessNumber(num, { row, col }, noteStatus)
+        const response = await guessNumber(
+            num,
+            { row, col },
+            noteStatus)
     }
 
     const handlePressDelete = () => {

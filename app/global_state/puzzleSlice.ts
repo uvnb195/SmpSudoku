@@ -1,3 +1,4 @@
+import { LogStack, StackProps } from "@/constants/LogStack";
 import { SudokuMode } from "@/constants/SudokuMode";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
@@ -18,7 +19,8 @@ interface PuzzleState {
     },
     valueSelected?: number,
     mode: SudokuMode,
-    hintRemaining: number
+    hintRemaining: number,
+    backLogs: StackProps[]
 }
 
 const resetIndex = {
@@ -28,23 +30,6 @@ const resetIndex = {
 
 const resetArray = Array(9).fill(0).map(_ => Array(9).fill(0))
 const resetHints = Array(9).fill(0).map(_ => Array(9).fill(0).map(_ => Array(9).fill(false)))
-
-const randomIndex = (N: number) => Math.random() * N + 1
-
-const isPuzzleFinished = (solved: number[][]) => {
-    for (let i = 0; i < solved.length; i++) {
-        for (let j = 0; j < solved.length; j++) {
-            if (solved[i][j] == 0)
-                return {
-                    finished: false,
-                    row: i,
-                    col: j
-                }
-        }
-    }
-
-    return { finished: true }
-}
 
 const initialState: PuzzleState = {
     rootPuzzle: resetArray,
@@ -58,8 +43,10 @@ const initialState: PuzzleState = {
         row: -1,
         col: -1
     },
+    valueSelected: undefined,
     mode: SudokuMode.easy,
     hintRemaining: 0,
+    backLogs: []
 }
 
 interface NumberType {
@@ -91,8 +78,12 @@ const puzzleSlice = createSlice({
                 state.hints = action.payload
             },
         createSolved:
-            (state, action: PayloadAction<number[][]>) => {
-                state.solved = action.payload
+            (state, action: PayloadAction<{
+                list: number[][],
+                backLogs: StackProps[]
+            }>) => {
+                state.solved = action.payload.list
+                state.backLogs = action.payload.backLogs
             },
         setEnableNote:
             (state, action: PayloadAction<boolean>) => {
@@ -127,6 +118,11 @@ const puzzleSlice = createSlice({
                     state.solved[row][col]
                         = value
                     state.valueSelected = value
+
+                    // backlogs stack
+                    const backLogs = new LogStack(state.backLogs)
+                    backLogs.set(`${row}${col}`, value)
+                    state.backLogs = backLogs.getAll()
                 }
                 state.position = {
                     ...state.position,
@@ -138,6 +134,26 @@ const puzzleSlice = createSlice({
             if (state.note) {
                 state.hints[row][col] = Array(9).fill(false)
             } else {
+                state.solved[row][col] = 0
+                const backLogs = new LogStack(state.backLogs)
+                backLogs.remove(`${row}${col}`)
+                state.backLogs = backLogs.getAll()
+            }
+        },
+        undo: (state) => {
+            if (state.backLogs.length > 0) {
+                const backLogs = new LogStack(state.backLogs)
+                const lastItem = backLogs.pop()
+                const { row, col } = backLogs.getIndexFromKey(lastItem.key)
+
+                state.backLogs = backLogs.getAll()
+                state.position = {
+                    row: row,
+                    col: col,
+                    x: 0,
+                    y: 0
+                }
+                state.valueSelected = undefined
                 state.solved[row][col] = 0
             }
         },
@@ -155,22 +171,11 @@ const puzzleSlice = createSlice({
                     row: -1,
                 }
                 state.valueSelected = undefined
+                state.backLogs = []
             },
-        giveAHint:
-            (state) => {
-                const status = isPuzzleFinished(state.solved)
-                if (!status.finished) {
-                    const { row, col } = status
-                    if (state.hintRemaining > 0) {
-                        const showValue = state.rootPuzzle[row!!][col!!]
-                        state.hintRemaining--
-                        state.position.row = row!!
-                        state.position.col = col!!
-                        state.valueSelected = showValue
-                        state.solved[row!!][col!!] = showValue
-                    }
-                }
-            }
+        decrementHintRemaining: (state) => {
+            state.hintRemaining = state.hintRemaining - 1
+        }
     }
 })
 
@@ -183,7 +188,8 @@ export const {
     createHints,
     deleteNumber,
     changeMode,
-    giveAHint
+    decrementHintRemaining,
+    undo
 } = puzzleSlice.actions
 
 export default puzzleSlice.reducer

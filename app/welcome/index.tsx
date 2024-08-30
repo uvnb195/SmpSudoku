@@ -9,6 +9,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 
 import { getLocales } from 'expo-localization'
 import { router } from 'expo-router'
+import { resetFile } from '../global_state/FileSystem'
 
 const Onboarding = () => {
     const languageCode = getLocales()[0].languageCode
@@ -44,6 +45,7 @@ const Onboarding = () => {
     }, [currentIndex])
 
     const handleFinish = async () => {
+        resetFile()
         router.replace('/')
     }
 

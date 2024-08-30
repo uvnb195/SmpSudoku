@@ -11,11 +11,11 @@ import GridItem from './components/GridItem'
 import { useLoading } from './context/ContextProvider'
 import { RootState } from './global_state'
 import { isFirstTime } from './global_state/AsyncStorage'
-import { loadBased, loadHints, loadSolved, resetFile } from './global_state/FileSystem'
+import { loadBased, loadNotes, loadSolved, resetFile } from './global_state/FileSystem'
 import { createBased, createHints, createSolved } from './global_state/puzzleSlice'
 
 const Home = () => {
-    const theme = useColorScheme()
+    const theme = useColorScheme();
     // resetFile()
 
     const boudedSize = Math.min(Math.round(WINDOW_WIDTH),
@@ -39,19 +39,19 @@ const Home = () => {
         const getData = async () => {
             const basedResponse = await loadBased(mode)
             const solvedResponse = await loadSolved()
-            const hintsResponse = await loadHints()
+            const notesResponse = await loadNotes()
 
             if (basedResponse.success && basedResponse.data) {
                 dispatch(createBased(basedResponse.data))
             }
 
             if (solvedResponse.success
-                && solvedResponse.data.length > 0)
+                && solvedResponse.data.list.length > 0)
                 dispatch(createSolved(solvedResponse.data))
 
-            if (hintsResponse.success
-                && hintsResponse.data.length > 0)
-                dispatch(createHints(hintsResponse.data))
+            if (notesResponse.success
+                && notesResponse.data.length > 0)
+                dispatch(createHints(notesResponse.data))
         }
 
         getData()
